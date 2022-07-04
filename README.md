@@ -1,5 +1,5 @@
-# Ajapaik-analytics
-Sample app for accessing to Ajapaik replica database
+## [Join Ajapaik Slack](http://bit.ly/join-Ajapaik-Slack)!
+This is the open-sourced Django project code for accessing to [ajapaik.ee](https://ajapaik.ee/) crowdsourced database
 
 # Access rights
 For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation.
