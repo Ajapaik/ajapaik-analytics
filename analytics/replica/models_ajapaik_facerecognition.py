@@ -2,8 +2,8 @@ import json
 
 from django.contrib.gis.db.models import DateTimeField, ImageField
 from django.db.models import Model, ForeignKey, PositiveSmallIntegerField, TextField, BooleanField, RESTRICT
-import analytics.replica.models_ajapaik as ajapaik
 from django.utils.translation import gettext as _
+from analytics.replica.replicated_model import ReplicatedModel
 
 # MASTER MODEL
 # https://github.com/Ajapaik/ajapaik-web/blob/master/ajapaik/ajapaik_face_recognition/models.py
@@ -25,7 +25,7 @@ GENDER = (
 )
 
 
-class FaceRecognitionRectangle(Model):
+class FaceRecognitionRectangle(ReplicatedModel):
     USER, ALGORITHM, PICASA = range(3)
     ORIGIN_CHOICES = (
         (USER, _('User')),
@@ -74,25 +74,21 @@ class FaceRecognitionRectangle(Model):
 
         return subject_album
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_face_recognition_facerecognitionrectangle'
 
-class FaceRecognitionRectangleSubjectDataSuggestion(Model):
+class FaceRecognitionRectangleSubjectDataSuggestion(ReplicatedModel):
     face_recognition_rectangle = ForeignKey(FaceRecognitionRectangle,related_name='face_recognition_rectangle', on_delete=RESTRICT)
     proposer = ForeignKey('Profile', related_name='subject_data_proposer', on_delete=RESTRICT)
     gender = PositiveSmallIntegerField(choices=GENDER, null=True)
     age = PositiveSmallIntegerField(choices=AGE, null=True)
     created = DateTimeField(auto_now_add=True, db_index=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_face_recognition_facerecognitionrectanglesubjectdatbadc'
 
 
-class FaceRecognitionRectangleFeedback(Model):
+class FaceRecognitionRectangleFeedback(ReplicatedModel):
     rectangle = ForeignKey(FaceRecognitionRectangle, related_name='feedback', on_delete=RESTRICT)
     user = ForeignKey('Profile', related_name='face_recognition_rectangle_feedback', on_delete=RESTRICT)
     alternative_subject = ForeignKey('Album', null=True, on_delete=RESTRICT)
@@ -115,12 +111,10 @@ class FaceRecognitionRectangleFeedback(Model):
 
         return string_label
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_face_recognition_facerecognitionrectanglefeedback'
 
-class FaceRecognitionUserSuggestion(Model):
+class FaceRecognitionUserSuggestion(ReplicatedModel):
     USER, ALGORITHM, PICASA = range(3)
     ORIGIN_CHOICES = (
         (USER, _('User')),
@@ -140,20 +134,5 @@ class FaceRecognitionUserSuggestion(Model):
     def __str__(self):
         return f'{str(self.id)} - {str(self.rectangle_id)} - {str(self.user_id)} - {str(self.subject_album_id)}'
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_face_recognition_facerecognitionusersuggestion'
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -24,7 +24,6 @@ DEBUG = False
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -70,16 +69,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'analytics.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+DATABASE_ROUTERS = ['analytics.replica.router.ReplicaRouter']
+DATABASE_APPS_MAPPING = {'replica_ro': 'replica_db',}
+
 DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': BASE_DIR / 'db.sqlite3',
-#    }
     'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    },
+    'replica_db': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'rephoto_replica',
          'USER': '',
@@ -89,6 +90,9 @@ DATABASES = {
     }
 }
 
+GRAPH_MODELS = {
+  'app_labels': ["analytics"],
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

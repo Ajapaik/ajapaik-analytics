@@ -11,7 +11,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext as _
 from django_extensions.db.fields import json
 from datetime import datetime
-import analytics.replica.models_ajapaik_facerecognition as fr
+from analytics.replica.replicated_model import ReplicatedModel
 
 #import FaceRecognitionRectangle, FaceRecognitionRectangleSubjectDataSuggestion, \
 #    FaceRecognitionRectangleFeedback, FaceRecognitionUserSuggestion
@@ -25,7 +25,7 @@ import analytics.replica.models_ajapaik_facerecognition as fr
 # https://github.com/Ajapaik/ajapaik-web/blob/master/ajapaik/ajapaik/models.py
 
 # Pretty much unused
-class Area(Model):
+class Area(ReplicatedModel):
     name = CharField(max_length=255) # Multilingual
     lat = FloatField(null=True)
     lon = FloatField(null=True)
@@ -33,11 +33,10 @@ class Area(Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        managed = False
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_area'
 
-class AlbumPhoto(Model):
+class AlbumPhoto(ReplicatedModel):
     CURATED, RECURATED, MANUAL, STILL, UPLOADED, FACE_TAGGED, COLLECTION = range(7)
     TYPE_CHOICES = (
         (CURATED, 'Curated'),
@@ -55,12 +54,10 @@ class AlbumPhoto(Model):
     type = PositiveSmallIntegerField(choices=TYPE_CHOICES, default=MANUAL, db_index=True)
     created = DateTimeField(auto_now_add=True, db_index=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_albumphoto'
 
-class Album(Model):
+class Album(ReplicatedModel):
     CURATED, FAVORITES, AUTO, PERSON, COLLECTION = range(5)
     TYPE_CHOICES = (
         (CURATED, 'Curated'),
@@ -116,9 +113,7 @@ class Album(Model):
 
     as_json = None
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_album'
 
     def __str__(self):
@@ -139,7 +134,7 @@ class Album(Model):
             return 'Film'
         return Album.TYPE_CHOICES[self.atype][1]
 
-class Photo(Model):
+class Photo(ReplicatedModel):
 #    objects = EstimatedCountManager()
 
     # Removed sorl ImageField because of https://github.com/mariocesar/sorl-thumbnail/issues/295
@@ -258,9 +253,7 @@ class Photo(Model):
     original_lat = None
     original_lon = None
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         ordering = ['-id']
         db_table = 'project_photo'
         indexes = [
@@ -334,7 +327,7 @@ class Photo(Model):
     def __str__(self):
         return f'{str(self.get_display_text)}' + ' (' + str(self.pk) + ')' 
 
-class ImageSimilarity(Model):
+class ImageSimilarity(ReplicatedModel):
     from_photo = ForeignKey(Photo, related_name='from_photo', on_delete=RESTRICT)
     to_photo = ForeignKey(Photo, related_name='to_photo', on_delete=RESTRICT)
     confirmed = BooleanField(default=False)
@@ -349,12 +342,10 @@ class ImageSimilarity(Model):
     created = DateTimeField(auto_now_add=True, db_index=True)
     modified = DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_imagesimilarity'
 
-class ImageSimilaritySuggestion(Model):
+class ImageSimilaritySuggestion(ReplicatedModel):
     image_similarity = ForeignKey(ImageSimilarity, related_name='image_similarity', on_delete=RESTRICT)
     proposer = ForeignKey('Profile', related_name='image_similarity_proposer', null=True, blank=True, on_delete=RESTRICT)
     DIFFERENT, SIMILAR, DUPLICATE = range(3)
@@ -366,12 +357,10 @@ class ImageSimilaritySuggestion(Model):
     similarity_type = PositiveSmallIntegerField(choices=SIMILARITY_TYPES, blank=True, null=True)
     created = DateTimeField(auto_now_add=True, db_index=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_imagesimilaritysuggestion'
 
-class PhotoMetadataUpdate(Model):
+class PhotoMetadataUpdate(ReplicatedModel):
     photo = ForeignKey('Photo', related_name='metadata_updates', on_delete=RESTRICT)
     old_title = CharField(max_length=255, blank=True, null=True)
     new_title = CharField(max_length=255, blank=True, null=True)
@@ -381,12 +370,10 @@ class PhotoMetadataUpdate(Model):
     new_author = CharField(null=True, blank=True, max_length=255)
     created = DateTimeField(auto_now_add=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_photometadataupdate'
 
-class PhotoComment(Model):
+class PhotoComment(ReplicatedModel):
     photo = ForeignKey('Photo', related_name='comments', on_delete=RESTRICT)
     fb_comment_id = CharField(max_length=255, unique=True)
     fb_object_id = CharField(max_length=255)
@@ -395,15 +382,13 @@ class PhotoComment(Model):
     text = TextField()
     created = DateTimeField()
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_photocomment'
 
     def __str__(self):
         return f'{self.text[:50]}'
 
-class DifficultyFeedback(Model):
+class DifficultyFeedback(ReplicatedModel):
     photo = ForeignKey('Photo', on_delete=RESTRICT)
     user_profile = ForeignKey('Profile', related_name='difficulty_feedbacks', on_delete=RESTRICT)
     level = PositiveSmallIntegerField()
@@ -411,12 +396,10 @@ class DifficultyFeedback(Model):
     geotag = ForeignKey('GeoTag', on_delete=RESTRICT)
     created = DateTimeField(auto_now_add=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_difficultyfeedback'
 
-class Points(Model):
+class Points(ReplicatedModel):
     GEOTAG, REPHOTO, PHOTO_UPLOAD, PHOTO_CURATION, PHOTO_RECURATION, DATING, DATING_CONFIRMATION, FILM_STILL, \
         ANNOTATION, CONFIRM_SUBJECT, CONFIRM_IMAGE_SIMILARITY, SUGGESTION_SUBJECT_AGE, SUGGESTION_SUBJECT_GENDER, \
         TRANSCRIBE, CATEGORIZE_SCENE, ADD_VIEWPOINT_ELEVATION, FLIP_PHOTO, ROTATE_PHOTO, INVERT_PHOTO = range(19)
@@ -449,7 +432,7 @@ class Points(Model):
     geotag = ForeignKey('GeoTag', null=True, blank=True, on_delete=RESTRICT)
     dating = ForeignKey('Dating', null=True, blank=True, on_delete=RESTRICT)
     dating_confirmation = ForeignKey('DatingConfirmation', null=True, blank=True, on_delete=RESTRICT)
-    annotation = ForeignKey('analytics.FaceRecognitionRectangle', null=True, blank=True, on_delete=RESTRICT)
+    annotation = ForeignKey('replica_ro.FaceRecognitionRectangle', null=True, blank=True, on_delete=RESTRICT)
     face_recognition_rectangle_subject_data_suggestion = ForeignKey(
         'FaceRecognitionRectangleSubjectDataSuggestion', null=True, blank=True, on_delete=RESTRICT)
     subject_confirmation = ForeignKey('FaceRecognitionUserSuggestion', null=True, blank=True, on_delete=RESTRICT)
@@ -458,9 +441,7 @@ class Points(Model):
     created = DateTimeField(db_index=True)
     transcription = ForeignKey('Transcription', null=True, blank=True, on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_points'
         verbose_name_plural = 'Points'
         unique_together = (
@@ -470,29 +451,25 @@ class Points(Model):
     def __str__(self):
         return u'%d - %s - %d' % (self.user_id, self.ACTION_CHOICES[self.action], self.points)
 
-class Transcription(Model):
+class Transcription(ReplicatedModel):
     text = CharField(max_length=5000, null=True, blank=True)
     photo = ForeignKey('Photo', related_name='transcriptions', on_delete=RESTRICT)
     user = ForeignKey('Profile', related_name='transcriptions', on_delete=RESTRICT)
     created = DateTimeField(auto_now_add=True, db_index=True)
     modified = DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_transcription'
 
-class TranscriptionFeedback(Model):
+class TranscriptionFeedback(ReplicatedModel):
     created = DateTimeField(auto_now_add=True, db_index=True)
     user = ForeignKey('Profile', related_name='transcription_feedback', on_delete=RESTRICT)
     transcription = ForeignKey(Transcription, related_name='transcription', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_transcriptionfeedback'
 
-class GeoTag(Model):
+class GeoTag(ReplicatedModel):
     MAP, EXIF, GPS, CONFIRMATION, STREETVIEW, SOURCE_GEOTAG, ANDROIDAPP = range(7)
     # FIXME: EXIF and GPS have never been used
     TYPE_CHOICES = (
@@ -544,9 +521,7 @@ class GeoTag(Model):
     created = DateTimeField(auto_now_add=True, db_index=True)
     modified = DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_geotag'
 
     def __str__(self):
@@ -556,16 +531,14 @@ class GeoTag(Model):
         if importer:
             return f'{str(self.id)} - {str(photo.id)} - {photo.get_display_text[:50]} - {importer}'
 
-class LocationPhoto(Model):
+class LocationPhoto(ReplicatedModel):
     location = ForeignKey('Location', on_delete=RESTRICT)
     photo = ForeignKey('Photo', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_locationphoto'
 
-class Location(Model):
+class Location(ReplicatedModel):
     name = CharField(max_length=255, null=True, blank=True)
     location_type = CharField(max_length=255, null=True, blank=True)
     photos = ManyToManyField('Photo', through='LocationPhoto', related_name='locations')
@@ -578,12 +551,10 @@ class Location(Model):
         on_delete=RESTRICT
     )
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_location'
 
-class Source(Model):
+class Source(ReplicatedModel):
     name = CharField(max_length=255)
     description = TextField(null=True, blank=True)
     created = DateTimeField(auto_now_add=True)
@@ -592,61 +563,51 @@ class Source(Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_source'
 
-class Device(Model):
+class Device(ReplicatedModel):
     camera_make = CharField(null=True, blank=True, max_length=255)
     camera_model = CharField(null=True, blank=True, max_length=255)
     lens_make = CharField(null=True, blank=True, max_length=255)
     lens_model = CharField(null=True, blank=True, max_length=255)
     software = CharField(null=True, blank=True, max_length=255)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_device'
 
     def __str__(self):
         return f'{self.camera_make} {self.camera_model} {self.lens_make} {self.lens_model} {self.software}'
 
-class Skip(Model):
+class Skip(ReplicatedModel):
     user = ForeignKey('Profile', related_name='skips', on_delete=RESTRICT)
     photo = ForeignKey('Photo', on_delete=RESTRICT)
     created = DateTimeField(auto_now_add=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_skip'
 
     def __str__(self):
         return f'{str(self.user_id)} {str(self.photo.pk)}'
 
-class Licence(Model):
+class Licence(ReplicatedModel):
     name = CharField(max_length=255)
     url = URLField(blank=True, null=True)
     image_url = URLField(blank=True, null=True)
     is_public = BooleanField(default=False)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_licence'
 
     def __str__(self):
         return self.name
 
-class GoogleMapsReverseGeocode(Model):
+class GoogleMapsReverseGeocode(ReplicatedModel):
     lat = FloatField(validators=[MinValueValidator(-85.05115), MaxValueValidator(85)], db_index=True)
     lon = FloatField(validators=[MinValueValidator(-180), MaxValueValidator(180)], db_index=True)
     response = json.JSONField()
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_googlemapsreversegeocode'
 
     def __str__(self):
@@ -656,7 +617,7 @@ class GoogleMapsReverseGeocode(Model):
         else:
             return f'{self.lat};{self.lon}'
 
-class Dating(Model):
+class Dating(ReplicatedModel):
     DAY, MONTH, YEAR = range(3)
     ACCURACY_CHOICES = (
         (DAY, _('Day')),
@@ -677,29 +638,25 @@ class Dating(Model):
     created = DateTimeField(auto_now_add=True)
     modified = DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_dating'
 
     def __str__(self):
         return f'{str(self.profile.pk)} - {str(self.photo.pk)}'
 
-class DatingConfirmation(Model):
+class DatingConfirmation(ReplicatedModel):
     created = DateTimeField(auto_now_add=True)
     modified = DateTimeField(auto_now=True)
     confirmation_of = ForeignKey('Dating', related_name='confirmations', on_delete=RESTRICT)
     profile = ForeignKey('Profile', related_name='dating_confirmations', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_datingconfirmation'
 
     def __str__(self):
         return f'{str(self.profile.pk)} - {str(self.confirmation_of.pk)}'
 
-class Video(Model):
+class Video(ReplicatedModel):
     name = CharField(max_length=255)
     slug = SlugField(null=True, blank=True, max_length=255, unique=True)
     file = FileField(upload_to='videos', blank=True, null=True)
@@ -717,9 +674,7 @@ class Video(Model):
     created = DateTimeField(auto_now_add=True)
     modified = DateTimeField(auto_now=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_video'
 
     def __str__(self):
@@ -728,11 +683,11 @@ class Video(Model):
     def get_absolute_url(self):
         return reverse('videoslug', args=(self.id, self.slug))
 
-class Suggestion(Model):
+class Suggestion(ReplicatedModel):
     created = DateTimeField(auto_now_add=True, db_index=True)
     photo = ForeignKey('Photo', on_delete=RESTRICT)
 
-    class Meta:
+    class Meta(ReplicatedModel.Meta):
         abstract = True
 
 class PhotoSceneSuggestion(Suggestion):
@@ -744,9 +699,7 @@ class PhotoSceneSuggestion(Suggestion):
     scene = PositiveSmallIntegerField(_('Scene'), choices=SCENE_CHOICES, blank=True, null=True)
     proposer = ForeignKey('Profile', blank=True, null=True, related_name='photo_scene_suggestions', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(Suggestion.Meta):
         db_table = 'ajapaik_photoscenesuggestion'
 
 class PhotoViewpointElevationSuggestion(Suggestion):
@@ -759,66 +712,52 @@ class PhotoViewpointElevationSuggestion(Suggestion):
     viewpoint_elevation = PositiveSmallIntegerField(_('Viewpoint elevation'), choices=VIEWPOINT_ELEVATION_CHOICES, blank=True, null=True)
     proposer = ForeignKey('Profile', blank=True, null=True, related_name='photo_viewpoint_elevation_suggestions', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(Suggestion.Meta):
         db_table = 'ajapaik_photoviewpointelevationsuggestion'
 
 class PhotoFlipSuggestion(Suggestion):
     proposer = ForeignKey('Profile', blank=True, null=True, related_name='photo_flip_suggestions', on_delete=RESTRICT)
     flip = BooleanField(null=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(Suggestion.Meta):
         db_table = 'ajapaik_photoflipsuggestion'
 
 class PhotoInvertSuggestion(Suggestion):
     proposer = ForeignKey('Profile', blank=True, null=True, related_name='photo_invert_suggestions', on_delete=RESTRICT)
     invert = BooleanField(null=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(Suggestion.Meta):
         db_table = 'ajapaik_photoinvertsuggestion'
 
 class PhotoRotationSuggestion(Suggestion):
     rotated = IntegerField(null=True, blank=True)
     proposer = ForeignKey('Profile', blank=True, null=True, related_name='photo_rotate_suggestions', on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(Suggestion.Meta):
         db_table = 'ajapaik_photorotationsuggestion'
 
-class MuisCollection(Model):
+class MuisCollection(ReplicatedModel):
     spec = CharField(max_length=255, null=True, blank=True)
     name = CharField(max_length=255, null=True, blank=True)
     imported = BooleanField(default=False)
     blacklisted = BooleanField(default=False)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'ajapaik_muiscollection'
 
 
-class AlbumVideos(Model):
+class AlbumVideos(ReplicatedModel):
     album = ForeignKey(Album, on_delete=RESTRICT)
     video = ForeignKey(Video, on_delete=RESTRICT)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_album_videos'
         unique_together = (('album', 'video'),)
 
 
-class Profile(Model):
+class Profile(ReplicatedModel):
 #    score = PositiveIntegerField(default=0, db_index=True)
 #    display_name = CharField(max_length=255, null=True, blank=True)
 
-    class Meta:
-        managed = False
-        read_only_model = True
+    class Meta(ReplicatedModel.Meta):
         db_table = 'project_profile_ids'
