@@ -30,7 +30,7 @@ Sample app for accessing to Ajapaik replica database
 For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
 
 # Graph models
-![Replicated models] /ajapaik_replica_models.png
+![Replicated models](ajapaik_replica_models.png)
 
 For regenerating model map
 
