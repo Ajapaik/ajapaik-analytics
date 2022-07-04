@@ -1,4 +1,4 @@
-# ajapaik-analytics
+# Ajapaik-analytics
 Sample app for accessing to Ajapaik replica database
 
 # Access rights
