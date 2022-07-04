@@ -1,8 +1,8 @@
-## [Join Ajapaik Slack](http://bit.ly/join-Ajapaik-Slack)!
+## Ajapaik Analytics
 This is the open-sourced Django project code for accessing to [ajapaik.ee](https://ajapaik.ee/) crowdsourced database
 
 ## Access rights
-For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation.
+For database access & portforwarding etc you need user/password. Ask Zache or Vahur from [Ajapaik slack](http://bit.ly/join-Ajapaik-Slack) for creation.
 
 ## Installation
 
