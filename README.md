@@ -62,7 +62,7 @@ class Command(BaseCommand):
         for photo in photos:
             print('lat: ' + str(photo.lat) + '\tlon: ' + str(photo.lon) +'\t' + str(photo))
 ```
-Running
+Execute code:
 ```
 python manage.py example
 ```
