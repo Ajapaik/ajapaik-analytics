@@ -23,6 +23,10 @@ source ./venv/bin/activate
 pip install -r requirements.txt
 ```
 
+3.b) OPTIONAL: OS X only
+OS X install seems to require GDAL
+- https://medium.com/@vascofernandes_13322/how-to-install-gdal-on-macos-6a76fb5e24a4
+
 4.) Create analytics/settings/local.py
 ```
 cp analytics/settings/local.py.example analytics/settings/local.py
