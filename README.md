@@ -39,7 +39,7 @@ ssh -L 5430:127.0.0.1:5430 USERNAME@ajapaik.ee -p PORT
 python manage.py testmodels
 ```
 
-( Code is in ajapaik-analytics/analytics/management/testmodels.py )
+File: [analytics/management/commands/testmodels.py](analytics/management/commands/testmodels.py)
 
 # Example
 
@@ -53,17 +53,37 @@ from django.core.management.base import BaseCommand, CommandError
 from analytics.replica.models_ajapaik import Photo
 
 class Command(BaseCommand):
-
-    help = 'Print coordinates of first 100 photos'
+    help = 'Print coordinates and urls of first 10 photos'
 
     def handle(self, *args, **options):
         photos = Photo.objects.filter(lat__isnull=False, lon__isnull=False).order_by('id')[:100]
         for photo in photos:
-            print('lat: ' + str(photo.lat) + '\tlon: ' + str(photo.lon) +'\t' + str(photo))
+            print(str(photo))
+            print('* lat: ' + str(photo.lat) + '\tlon: ' + str(photo.lon))
+            print('* IIIF manifest: ' + photo.get_iiif_manifest_url)
+            print('* IIIF image server: ' + photo.get_iiif_image_url)
+            print('* Thumbnail: ' + photo.get_thumbnail_url)
+            print('* Full image (url): ' + photo.get_full_image_url)
+            print('* Full image (on analytics disk): ' + photo.get_full_image_path)
+            print('')
 ```
+
 Execute code:
 ```
 python manage.py example
+```
+
+Output:
+```
+Paks Margareeta ja Rannavärav (1699)
+* lat: 59.4428383978513 lon: 24.7493648624268
+* IIIF manifest: https://ajapaik.ee/photo/1699/v2/manifest.json
+* IIIF image server: https://ajapaik.ee/iiif/work/iiif/ajapaik/2011/02/26/af69df6581236498472ccd740e0a4b59.jpg.tif/full/max/0/default.jpg
+* Thumbnail: https://ajapaik.ee/photo-thumb/1699/400/
+* Full image (url): https://ajapaik.ee/media/uploads/2011/02/26/af69df6581236498472ccd740e0a4b59.jpg
+* Full image (on analytics disk): /storage/ajapaik_media/uploads/2011/02/26/af69df6581236498472ccd740e0a4b59.jpg
+
+...
 ```
 
 # Models

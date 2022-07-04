@@ -281,6 +281,29 @@ class Photo(Model):
             Index(F('latest_rephoto').desc(nulls_last=True), name='latest_rephoto_idx'),
             Index(F('first_rephoto').asc(nulls_last=True), name='first_rephoto_idx'),
         ]
+    @property
+    def get_iiif_manifest_url(self):
+        return 'https://ajapaik.ee/photo/' + str(self.id) + '/v2/manifest.json' 
+
+    @property
+    def get_iiif_image_url(self):
+        prefix='uploads/'
+        imagepath=str(self.image)
+        if imagepath.startswith(prefix):
+            imagepath=imagepath[len(prefix):]
+        return 'https://ajapaik.ee/iiif/work/iiif/ajapaik/' + imagepath + '.tif/full/max/0/default.jpg' 
+
+    @property
+    def get_thumbnail_url(self):
+        return 'https://ajapaik.ee/photo-thumb/'+ str(self.id) +'/400/' 
+
+    @property
+    def get_full_image_url(self):
+        return 'https://ajapaik.ee/media/'+ str(self.image)
+
+    @property
+    def get_full_image_path(self):
+        return '/storage/ajapaik_media/'+ str(self.image)
 
     @property
     def get_display_text(self):
