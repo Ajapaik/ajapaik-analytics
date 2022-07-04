@@ -1,10 +1,10 @@
 ## [Join Ajapaik Slack](http://bit.ly/join-Ajapaik-Slack)!
 This is the open-sourced Django project code for accessing to [ajapaik.ee](https://ajapaik.ee/) crowdsourced database
 
-# Access rights
+## Access rights
 For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation.
 
-# Installation
+## Installation
 
 1.) Get source code
 ```
@@ -41,7 +41,7 @@ python manage.py testmodels
 
 File: [analytics/management/commands/testmodels.py](analytics/management/commands/testmodels.py)
 
-# Example
+## Example
 
 Django documentation for management commands
 * https://docs.djangoproject.com/en/4.0/howto/custom-management-commands/
@@ -86,7 +86,7 @@ Paks Margareeta ja Rannavärav (1699)
 ...
 ```
 
-# Models
+## Models
 Replicated Ajapaik models in database
 
 ![Replicated models](ajapaik_replica_models.png)
