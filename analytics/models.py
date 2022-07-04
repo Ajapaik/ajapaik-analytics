@@ -1,0 +1,4 @@
+import analytics.replica.models_ajapaik
+import analytics.replica.models_ajapaik_facerecognition
+import analytics.replica.models_ajapaik_objectrecognition
+

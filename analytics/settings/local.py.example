@@ -1,4 +1,4 @@
-from ajapaik.settings.default import *
+from analytics.settings.default import *
 
 DEBUG = True
 

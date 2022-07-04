@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
+#    'django_extensions',  # Enable for django graph models https://django-extensions.readthedocs.io/en/latest/graph_models.html
     'readonly_model',
     'analytics'
 ]
