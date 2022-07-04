@@ -1,6 +1,10 @@
 # ajapaik-analytics
 Sample app for accessing to Ajapaik replica database
 
+# Access rights
+For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
+
+
 # Installation
 
 1.) Get source code
@@ -38,8 +42,26 @@ python manage.py testmodels
 
 ( Code is in ajapaik-analytics/analytics/management/testmodels.py )
 
-# Access rights
-For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
+# Example
+* https://docs.djangoproject.com/en/4.0/howto/custom-management-commands/
+* https://docs.djangoproject.com/en/4.0/ref/models/querysets/
+
+Code: [analytics/management/commands/example.py](analytics/management/commands/example.py)
+
+'''
+from django.core.management.base import BaseCommand, CommandError
+from analytics.replica.models_ajapaik import Photo
+
+class Command(BaseCommand):
+    help = 'Print coordinates of first 100 photos'
+
+    def handle(self, *args, **options):
+
+        photos = Photo.objects.filter(lat__isnull=False, lon__isnull=False).order_by('id')[:100]
+        for photo in photos:
+            print('lat: ' + str(photo.lat) + '\tlon: ' + str(photo.lon) +'\t' + str(photo))
+
+'''
 
 # Models
 Replicated Ajapaik models in database

@@ -308,6 +308,9 @@ class Photo(Model):
         else:
             slug = slugify(self.created.__format__('%Y-%m-%d'))
 
+    def __str__(self):
+        return f'{str(self.get_display_text)}' + ' (' + str(self.pk) + ')' 
+
 class ImageSimilarity(Model):
     from_photo = ForeignKey(Photo, related_name='from_photo', on_delete=RESTRICT)
     to_photo = ForeignKey(Photo, related_name='to_photo', on_delete=RESTRICT)
