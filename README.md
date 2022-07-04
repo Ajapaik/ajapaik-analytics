@@ -47,7 +47,7 @@ python manage.py testmodels
 Django documentation for management commands
 * https://docs.djangoproject.com/en/4.0/howto/custom-management-commands/
 
-Code: [analytics/management/commands/example.py](analytics/management/commands/example.py)
+File: [analytics/management/commands/example.py](analytics/management/commands/example.py)
 
 ```
 from django.core.management.base import BaseCommand, CommandError
@@ -61,6 +61,10 @@ class Command(BaseCommand):
         photos = Photo.objects.filter(lat__isnull=False, lon__isnull=False).order_by('id')[:100]
         for photo in photos:
             print('lat: ' + str(photo.lat) + '\tlon: ' + str(photo.lon) +'\t' + str(photo))
+```
+Running
+```
+python manage.py example
 ```
 
 # Models
