@@ -41,7 +41,9 @@ python manage.py testmodels
 # Access rights
 For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
 
-# Graph models
+# Models
+Replicated Ajapaik models in database
+
 ![Replicated models](ajapaik_replica_models.png)
 
 For regenerating model map
