@@ -1,10 +1,6 @@
 # Ajapaik-analytics
 Sample app for accessing to Ajapaik replica database
 
-# Access rights
-For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
-
-
 # Installation
 
 1.) Get source code
@@ -25,6 +21,7 @@ pip install -r requirements.txt
 ```
 
 4.) Create analytics/settings/local.py
+* For database access & portforwarding etc you need user/password. Ask Zache or Vahur from Ajapaik slack for creation
 ```
 cp analytics/settings/local.py.example analytics/settings/local.py
 edit analytics/settings/local.py
