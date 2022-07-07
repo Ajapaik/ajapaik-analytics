@@ -101,8 +101,18 @@ For regenerating model map
 ```
 apt-get install graphviz-dev
 pip install pygraphviz
-./manage.py graph_models --pygraphviz -o ajapaik_replica_models.png
+python manage.py graph_models --pygraphviz -o ajapaik_replica_models.png
 ```
 
 ## User models
+
+File to edit:
 * [analytics/replica_user/models.py](analytics/replica_user/models.py)
+
+Updating
+```
+python manage.py makemigrations replica_user  # Create migrations
+python manage.py showmigrations replica_user  # Shows pending migrations
+python manage.py sqlmigrate replica_user 0001 # You see the correct id with showmigrations command
+python manage.py migrate replica_user         # Executes migration
+```
