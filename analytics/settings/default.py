@@ -36,7 +36,9 @@ INSTALLED_APPS = [
     'django.contrib.gis',
 #    'django_extensions',  # Enable for django graph models https://django-extensions.readthedocs.io/en/latest/graph_models.html
     'readonly_model',
-    'analytics'
+    'analytics',
+    'analytics.replica_ro',
+    'analytics.replica_user',
 ]
 
 MIDDLEWARE = [
@@ -72,15 +74,18 @@ WSGI_APPLICATION = 'analytics.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DATABASE_ROUTERS = ['analytics.replica.router.ReplicaRouter']
-DATABASE_APPS_MAPPING = {'replica_ro': 'replica_db',}
+DATABASE_ROUTERS = ['analytics.replica_ro.router.ReplicaRouter']
+DATABASE_APPS_MAPPING = {
+    'replica_ro': 'replica_readonly',
+    'replica_user': 'replica_user',
+}
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'replica_db': {
+    'replica_readonly': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'rephoto_replica',
          'USER': '',

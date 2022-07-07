@@ -15,14 +15,23 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     },
-    'replica_db': {
+    'replica_readonly': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'rephoto_replica',
          'USER': '',
          'PASSWORD': '',
          'HOST': '127.0.0.1',
          'PORT': 5430,
-    }
+    },
+#    'replica_user': {
+#         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+#         'NAME': 'rephoto_replica',
+#         'USER': '',
+#         'PASSWORD': '',
+#         'HOST': '127.0.0.1',
+#         'PORT': 5430,
+#    },
+
 }
 
 # ALLOWED_HOSTS = [ 127.0.0.1 ]

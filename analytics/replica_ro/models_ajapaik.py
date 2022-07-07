@@ -11,7 +11,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import gettext as _
 from django_extensions.db.fields import json
 from datetime import datetime
-from analytics.replica.replicated_model import ReplicatedModel
+from analytics.replica_ro.replicated_model import ReplicatedModel
 
 #import FaceRecognitionRectangle, FaceRecognitionRectangleSubjectDataSuggestion, \
 #    FaceRecognitionRectangleFeedback, FaceRecognitionUserSuggestion

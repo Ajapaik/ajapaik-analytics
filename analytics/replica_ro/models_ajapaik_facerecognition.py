@@ -3,7 +3,7 @@ import json
 from django.contrib.gis.db.models import DateTimeField, ImageField
 from django.db.models import Model, ForeignKey, PositiveSmallIntegerField, TextField, BooleanField, RESTRICT
 from django.utils.translation import gettext as _
-from analytics.replica.replicated_model import ReplicatedModel
+from analytics.replica_ro.replicated_model import ReplicatedModel
 
 # MASTER MODEL
 # https://github.com/Ajapaik/ajapaik-web/blob/master/ajapaik/ajapaik_face_recognition/models.py

@@ -92,7 +92,9 @@ Paks Margareeta ja Rannavärav (1699)
 
 ## Models
 Replicated Ajapaik models in database
-
+* [analytics/replica_ro/models_ajapaik.py](analytics/replica_ro/models_ajapaik.py)
+* [analytics/replica_ro/models_ajapaik_facerecognition.py](analytics/replica_ro/models_ajapaik_facerecognition.py)
+* [analytics/replica_ro/models_ajapaik_objectrecognition.py](analytics/replica_ro/models_ajapaik_objectrecognition.py)
 ![Replicated models](ajapaik_replica_models.png)
 
 For regenerating model map
@@ -101,3 +103,6 @@ apt-get install graphviz-dev
 pip install pygraphviz
 ./manage.py graph_models --pygraphviz -o ajapaik_replica_models.png
 ```
+
+## User models
+* [analytics/replica_user/models.py](analytics/replica_user/models.py)

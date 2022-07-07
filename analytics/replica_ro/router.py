@@ -8,7 +8,7 @@ class ReplicaRouter:
         Attempts to read user models go to users_db.
         """
         if model._meta.app_label == 'replica_ro':
-            return 'replica_db'
+            return 'replica_readonly'
         return None
 
     def db_for_write(self, model, **hints):
@@ -17,6 +17,10 @@ class ReplicaRouter:
         """
         if model._meta.app_label == 'replica_ro':
             return 'default'
+
+        if model._meta.app_label == 'replica_user':
+            return 'replica_user'
+
         return None
 
     def allow_relation(self, obj1, obj2, **hints):

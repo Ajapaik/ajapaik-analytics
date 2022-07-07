@@ -1,5 +1,5 @@
 from django.db.models import Model, RESTRICT, ForeignKey, TextField, DateTimeField, FloatField, BooleanField
-from analytics.replica.replicated_model import ReplicatedModel
+from analytics.replica_ro.replicated_model import ReplicatedModel
 
 
 # MASTER FILE

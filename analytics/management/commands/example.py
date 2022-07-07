@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from analytics.replica.models_ajapaik import Photo
+from analytics.replica_ro.models_ajapaik import Photo
 
 # https://docs.djangoproject.com/en/4.0/howto/custom-management-commands/
 
