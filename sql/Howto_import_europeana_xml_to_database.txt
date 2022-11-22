@@ -1,0 +1,162 @@
+#Get the datasets
+# https://pro.europeana.eu/page/harvesting-and-downloads
+
+wget -m ftp://download.europeana.eu/dataset/XML
+
+# Grep images from zips and make one image per row
+ls *.zip | xargs -n1 unzip -p |tr -d "\n" |tr -d "\r" | sed "s/<[/]rdf:RDF>/<\/rdf:RDF>\n/g" |grep "IMAGE" |grep -P "/(tif|jpeg)" | gzip > images.txt.gz
+
+# Grep the interesting content
+zcat images.txt.gz | |grep -P "([6789][0-9]{3}|[0-9]{4})</ebucore:(height|width)>" | grep -P "(Bénin|Beinin|Bénen|Mbenĩ)" |gzip > images.benin.txt.gz
+
+# Filter out characters which would break database import
+zcat images.benin.txt.gz |tr -d "\t" |sed "s/<[/]rdf:RDF>/<\/rdf:RDF>\t/" | sed "s/ +/ /g" |sed "s/ [.]/./g" |tr -d "\a" |tr -d "\b" | tr -d "\v" |tr -d "\f" |tr -d "\r" |tr -d "\n" |tr "\t" "\n"
+| tr -d "\\\\" > images.benin.cleaned.txt
+
+# Create database table inside psql
+
+CREATE TABLE europeana_xml (
+id serial PRIMARY KEY,
+xmldata_created TIMESTAMP NOT NULL DEFAULT NOW(),
+xmldata xml
+);
+
+# Copy data inside psql
+COPY europeana_xml(xmldata) FROM '/storage/download.europeana.eu/dataset/XML/benin.cleaned.txt' DELIMITER E'\013';
+
+# define namespaces inside psql
+
+CREATE OR REPLACE FUNCTION
+public.get_europeana_namespaces()
+RETURNS text[][]
+LANGUAGE 'plpgsql'
+COST 1
+IMMUTABLE
+PARALLEL SAFE
+AS $BODY$ DECLARE
+def_var CONSTANT text[][] :=  ARRAY[
+ARRAY['rdf','http://www.w3.org/1999/02/22-rdf-syntax-ns#'],
+ARRAY['dc','http://purl.org/dc/elements/1.1/'],
+ARRAY['dcterms', 'http://purl.org/dc/terms/'],
+ARRAY['edm', 'http://www.europeana.eu/schemas/edm/'],
+ARRAY['owl','http://www.w3.org/2002/07/owl#'],
+ARRAY['wgs84_pos','http://www.w3.org/2003/01/geo/wgs84_pos#'],
+ARRAY['skos', 'http://www.w3.org/2004/02/skos/core#'],
+ARRAY['rdaGr2', 'http://rdvocab.info/ElementsGr2/'],
+ARRAY['foaf', 'http://xmlns.com/foaf/0.1/'],
+ARRAY['ebucore', 'http://www.ebu.ch/metadata/ontologies/ebucore/ebucore#'],
+ARRAY['doap','http://usefulinc.com/ns/doap#'],
+ARRAY['odrl','http://www.w3.org/ns/odrl/2/'],
+ARRAY['cc','http://creativecommons.org/ns#'],
+ARRAY['ore','http://www.openarchives.org/ore/terms/'],
+ARRAY['svcs','http://rdfs.org/sioc/services#'],
+ARRAY['oa','http://www.w3.org/ns/oa#'],
+ARRAY['dqv','http://www.w3.org/ns/dqv#']];
+BEGIN
+RETURN def_var;
+END;
+$BODY$;
+
+# Create materialized view
+
+CREATE MATERIALIZED VIEW europeana_view
+AS
+SELECT
+id,
+created,
+xpath('/rdf:RDF/ore:Proxy/dc:title/text()', xmldata, get_europeana_namespaces() )::text[]             as title,
+xpath('/rdf:RDF/ore:Proxy/dc:title/@xml:lang', xmldata, get_europeana_namespaces() )::text[]          as title_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:description/text()', xmldata, get_europeana_namespaces() )::text[]       as description,
+xpath('/rdf:RDF/ore:Proxy/dc:description/@xml:lang', xmldata, get_europeana_namespaces() )::text[]    as description_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:creator/text()', xmldata, get_europeana_namespaces() )::text[]           as creator,
+xpath('/rdf:RDF/ore:Proxy/dc:creator/@xml:lang', xmldata, get_europeana_namespaces() )::text[]        as creator_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:coverage/text()', xmldata, get_europeana_namespaces() )::text[]          as coverage,
+xpath('/rdf:RDF/ore:Proxy/dc:coverage/@xml:lang', xmldata, get_europeana_namespaces() )::text[]       as coverage_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:identifier/text()', xmldata, get_europeana_namespaces() )::text[]        as identifier,
+xpath('/rdf:RDF/ore:Proxy/dc:date/text()', xmldata, get_europeana_namespaces() )::text[]              as date,
+xpath('/rdf:RDF/ore:Proxy/dc:date/@xml:lang', xmldata, get_europeana_namespaces() )::text[]           as date_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:type/text()', xmldata, get_europeana_namespaces() )::text[]              as type,
+xpath('/rdf:RDF/ore:Proxy/dc:type/@xml:lang', xmldata, get_europeana_namespaces() )::text[]           as type_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:format/text()', xmldata, get_europeana_namespaces() )::text[]            as format,
+xpath('/rdf:RDF/ore:Proxy/dc:format/@xml:lang', xmldata, get_europeana_namespaces() )::text[]         as format_lang,
+xpath('/rdf:RDF/ore:Proxy/dc:subject/text()', xmldata, get_europeana_namespaces() )::text[]           as subject,
+xpath('/rdf:RDF/ore:Proxy/dc:subject/@xml:lang', xmldata, get_europeana_namespaces() )::text[]        as subject_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:created/text()', xmldata, get_europeana_namespaces() )::text[]      as created,
+xpath('/rdf:RDF/ore:Proxy/dcterms:created/@xml:lang', xmldata, get_europeana_namespaces() )::text[]   as created_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:temporal/text()', xmldata, get_europeana_namespaces() )::text[]     as temporal,
+xpath('/rdf:RDF/ore:Proxy/dcterms:temporal/@xml:lang', xmldata, get_europeana_namespaces() )::text[]  as temporal_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:medium/text()', xmldata, get_europeana_namespaces() )::text[]       as medium,
+xpath('/rdf:RDF/ore:Proxy/dcterms:medium/@xml:lang', xmldata, get_europeana_namespaces() )::text[]    as medium_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:extent/text()', xmldata, get_europeana_namespaces() )::text[]       as extent,
+xpath('/rdf:RDF/ore:Proxy/dcterms:extent/@xml:lang', xmldata, get_europeana_namespaces() )::text[]    as extent_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:spatial/text()', xmldata, get_europeana_namespaces() )::text[]      as spatial,
+xpath('/rdf:RDF/ore:Proxy/dcterms:spatial/@xml:lang', xmldata, get_europeana_namespaces() )::text[]   as spatial_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:isPartO/text()', xmldata, get_europeana_namespaces() )::text[]      as ispartof,
+xpath('/rdf:RDF/ore:Proxy/dcterms:isPartO/@xml:lang', xmldata, get_europeana_namespaces() )::text[]   as ispartof_lang,
+xpath('/rdf:RDF/ore:Proxy/dcterms:isPartO/@rdf:resource', xmldata, get_europeana_namespaces() )::text[]   as ispartof_url,
+xpath('/rdf:RDF/ore:Proxy/edm:year/text()', xmldata, get_europeana_namespaces() )::text[]             as year,
+xpath('/rdf:RDF/edm:EuropeanaAggregation/edm:datasetName/text()', xmldata, get_europeana_namespaces() )::text        as datasetName,
+xpath('/rdf:RDF/edm:EuropeanaAggregation/edm:country/text()', xmldata, get_europeana_namespaces() )::text            as sourceCountry,
+xpath('/rdf:RDF/edm:EuropeanaAggregation/edm:landingPage/@rdf:resource', xmldata, get_europeana_namespaces() )::text as landingPage,
+xpath('/rdf:RDF/edm:EuropeanaAggregation/edm:preview/@rdf:resource', xmldata, get_europeana_namespaces() )::text     as preview,
+xpath('/rdf:RDF/ore:Aggregation/edm:dataProvider/@rdf:resource', xmldata, get_europeana_namespaces() )::text         as dataProvider_url,
+xpath('/rdf:RDF/ore:Aggregation/edm:dataProvider/text()', xmldata, get_europeana_namespaces() )::text                as dataProvider,
+xpath('/rdf:RDF/ore:Aggregation/edm:dataProvider/@xml:lang', xmldata, get_europeana_namespaces() )::text             as dataProvider_lang,
+xpath('/rdf:RDF/ore:Aggregation/edm:provider/@rdf:resource', xmldata, get_europeana_namespaces() )::text             as provider_url,
+xpath('/rdf:RDF/ore:Aggregation/edm:provider/text()', xmldata, get_europeana_namespaces() )::text                    as provider,
+xpath('/rdf:RDF/ore:Aggregation/edm:provider/@xml:lang', xmldata, get_europeana_namespaces() )::text                 as provider_lang,
+xpath('/rdf:RDF/ore:Aggregation/edm:rights/@rdf:resource', xmldata, get_europeana_namespaces() )::text[]             as rights,
+xpath('/rdf:RDF/ore:Aggregation/edm:isShownAt/@rdf:resource', xmldata, get_europeana_namespaces() )::text[]          as sourceLandingPage,
+xpath('/rdf:RDF/edm:Place/@rdf:about', xmldata, get_europeana_namespaces() )::text[]                                 as place_url,
+xpath('/rdf:RDF/edm:Place/wgs84_pos:lat/text()', xmldata, get_europeana_namespaces() )::text[]::double precision[]   as place_Lat,
+xpath('/rdf:RDF/edm:Place/wgs84_pos:lon/text()', xmldata, get_europeana_namespaces() )::text[]::double precision[]   as place_Lon
+from europeana_xml;
+
+# Create index fields
+
+create index on europeana_view (title)
+create index on europeana_view (description)
+create unique index on europeana_view (id)
+create index on europeana_view (creator)
+create index on europeana_view (creator_lang)
+create index on europeana_view (coverage)
+create index on europeana_view (coverage_lang)
+create index on europeana_view (identifier)
+create index on europeana_view (date)
+create index on europeana_view (date_lang)
+create index on europeana_view (type)
+create index on europeana_view (type_lang)
+create index on europeana_view (format)
+create index on europeana_view (format_lang)
+create index on europeana_view (subject)
+create index on europeana_view (subject_lang)
+create index on europeana_view (temporal)
+create index on europeana_view (temporal_lang)
+create index on europeana_view (medium)
+create index on europeana_view (medium_lang)
+create index on europeana_view (extent)
+create index on europeana_view (extent_lang)
+create index on europeana_view (spatial)
+create index on europeana_view (spatial_lang)
+create index on europeana_view (created)
+create index on europeana_view (created_lang)
+create index on europeana_view (ispartof)
+create index on europeana_view (ispartof_url)
+create index on europeana_view (ispartof_lang)
+create index on europeana_view (year)
+create index on europeana_view (datasetName)
+create index on europeana_view (sourceCountry)
+create index on europeana_view (landingPage)
+create index on europeana_view (preview)
+create index on europeana_view (dataProvider)
+create index on europeana_view (dataProvider_url)
+create index on europeana_view (provider)
+create index on europeana_view (provider_url)
+create index on europeana_view (rights)
+create index on europeana_view (sourceLandingPage)
+create index on europeana_view (place_url)
+create index on europeana_view (place_lat)
+create index on europeana_view (place_lon)
+
+# Refresh materialized view
+REFRESH MATERIALIZED VIEW europeana_view
